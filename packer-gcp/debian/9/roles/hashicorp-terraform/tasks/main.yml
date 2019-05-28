@@ -1,0 +1,16 @@
+---
+- name: Make sure unzip is installed
+  apt:
+    name: unzip
+    state: present
+  register: task_result
+  until: task_result is success
+  retries: 10
+  delay: 2
+
+- name: Download and install Terraform
+  unarchive:
+    src: "https://releases.hashicorp.com/terraform/{{ terraform_version }}/terraform_{{ terraform_version }}_linux_amd64.zip"
+    dest: "{{ terraform_bin_path }}"
+    creates: "{{ terraform_bin_path }}/terraform"
+    remote_src: yes

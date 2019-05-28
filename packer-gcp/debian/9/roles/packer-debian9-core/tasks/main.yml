@@ -1,0 +1,74 @@
+---
+- name: Configure SSH daemon
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  with_items:
+    - { regexp: '^UseDNS', line: 'UseDNS no' }
+    - { regexp: '^GSSAPIAuthentication', line: 'GSSAPIAuthentication no' }
+
+- name: Configure devops' .ssh directory
+  file:
+    path: "/home/devops/.ssh"
+    state: directory
+    owner: "devops"
+    group: "devops"
+    mode: 0700
+  
+- name: Copy John's public key from MacBook
+  copy: 
+    src: "/Users/john/.ssh/id_rsa.pub"
+    dest: "/home/devops/.ssh/authorized_keys"
+    owner: "devops"
+    group: "devops"
+    mode: 0600
+
+- name: Configure eth0 in network interfaces
+  replace:
+    dest: "/etc/network/interfaces"
+    regexp: '(?:(?:eno|ens|enp)\w+)'
+    replace: 'eth0'
+
+- name: Configure grub to disable persistent network names
+  replace:
+    dest: "/etc/default/grub"
+    regexp: '(^\s*GRUB_CMDLINE_LINUX="\s*.*?)(?:\s*net\.ifnames\=[0-9]\s*)*(.*"*$)'
+    replace: '\1net.ifnames=0 \2'
+  register: configure_grub_disable_persistent_network_names
+
+- name: Update grub
+  shell: update-grub
+  when: configure_grub_disable_persistent_network_names.changed
+
+- name: Configure SSH daemon
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  with_items:
+    - { regexp: '^UseDNS', line: 'UseDNS no' }
+    - { regexp: '^GSSAPIAuthentication', line: 'GSSAPIAuthentication no' }
+
+- name: Configure {{ username }}'s .ssh directory
+  file:
+    path: "/home/devops/.ssh"
+    state: directory
+    owner: "devops"
+    group: "devops"
+    mode: 0700
+  
+- name: Copy John's public key from MacBook
+  copy: 
+    src: "/Users/john/.ssh/id_rsa.pub"
+    dest: "/home/devops/.ssh/authorized_keys"
+    owner: "devops"
+    group: "devops"
+    mode: 0600
+
+- name: Remove dependencies that are no longer required
+  apt:
+    autoremove: yes
+    autoclean: yes

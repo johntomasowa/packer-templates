@@ -1,0 +1,10 @@
+.DS_Store
+
+output-*
+packer_cache
+packer-vagrant
+packer-gcp/centos/*
+packer-gcp/rhel/*
+
+_.cfg
+*.iso
